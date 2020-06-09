@@ -19,15 +19,22 @@ read -p "input your couchdb username" username
 read -s -p "input your couchdb password" password
 
 mkdir ~/couchdb
+cd ~/couchdb
 
 sed -i 's/USER_NAME/$username/g' docker-compose.yml
 sed -i 's/USER_PASS/$password/g' docker-compose.yml 
 
 docker-compose up -d 
 docker volume create couchdb-data
-cp /usr/local/bin/
+
+sudo cp couchdb /usr/local/bin/couchdb
+sudo chmod +x /usr/local/bin/couchdb
+
 echo -e "\033[32mCouchdb installed successfully\033[0m"
 echo -e "\033[33mNote: please open 5984 port\033[0m"
+
 echo -e "\033[31mRemember your admin account and password\033[0m"
 echo "username: "$username
 echo "password: "$password
+
+echo -e "use command 'couchdb' to manage it"
