@@ -15,10 +15,11 @@ sudo curl -L "https://get.docker.com/" | sh
 sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-read -p "input your couchdb username" username
-read -s -p "input your couchdb password" password
+read -p "input your couchdb username: " username
+read -s -p "input your couchdb password: " password
 
 mkdir ~/couchdb
+sudo cp couchdb /usr/local/bin/couchdb
 cd ~/couchdb
 
 sed -i 's/USER_NAME/$username/g' docker-compose.yml
@@ -26,7 +27,12 @@ sed -i 's/USER_PASS/$password/g' docker-compose.yml
 
 docker-compose up -d 
 docker volume create couchdb-data
-
+ip=`curl ifconfig.co 2> /dev/null`
+curl -X PUT http://$username:$password@$ip:5984/_node/nonode@nohost/_config/couch_peruser/enable \
+     -H "Accept: application/json" \
+     -H "Content-Type: application/json" \
+	 -d '"true"'
+	 
 sudo cp couchdb /usr/local/bin/couchdb
 sudo chmod +x /usr/local/bin/couchdb
 
