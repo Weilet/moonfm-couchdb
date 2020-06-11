@@ -1,0 +1,43 @@
+#! /bin/bash
+
+read -p "Please input your admin username: " admin_name
+read -s -p "Please input your admin password: " admin_pass
+
+ip=`curl ifconfig.co 2> /dev/null`
+
+`curl -X GET http://$admin_name:$admin_pass@$ip:5984/ 2> /dev/null | grep "Welcome" &> /dev/null`
+
+if [[ $? -eq 0 ]]; then
+	echo -e "\033[33mAuthentication succeeded\033[0m"
+	while [[ true ]]; do
+		echo -e "C: \033[33mCreate\033[0m a new user"
+		echo -e "Q: Quit"
+		read -p "Select a option: " option
+		case $option in
+			c|C)
+				read -p "please input new user's name: " username
+				read -s -p "please input new user's password: " password
+				curl -X PUT http://$admin_name:$admin_pass@$ip:5984/_users/org.couchdb.user:$username\
+				-H "Accept: application/json" \
+				-H "Content-Type: application/json" \
+				-d "{\"name\": \"$username\", \"password\": \"$password\", \"roles\": [], \"type\": \"user\"}" &> /dev/null
+     			hex=`echo $username | od -A n -t x1 |  sed 's/ *//g' | cut -c1-4`
+     			db_name=`curl -X GET http://$admin_name:$admin_pass@$ip:5984/_all_dbs 2>/dev/null | sed 's/","/"\n"/g' | sed 's/]//g' | sed 's/"//g' | grep $hex`
+				echo -e "Your subscript url is: http://$username:$password@$ip:5984/$db_name"
+				;;
+			q|Q)
+				exit 0
+				;;
+			*)
+				echo -e "\033[31mERROR INPUT\033[0m"
+				continue
+		esac
+	done
+else 
+	echo -e "\033[31mAuthentication failed\033[0m"
+	exit 2
+fi
+
+
+
+
